@@ -1,10 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
 import Document from '@tiptap/extension-document'
+import HorizontalRule from '@tiptap/extension-horizontal-rule'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import HorizontalRule from '@tiptap/extension-horizontal-rule'
-import './styles.scss'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -24,9 +25,13 @@ export default () => {
 
   return (
     <>
-      <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
-        setHorizontalRule
-      </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+            Set horizontal rule
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
     </>

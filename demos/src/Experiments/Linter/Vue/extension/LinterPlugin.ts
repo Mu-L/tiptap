@@ -1,9 +1,10 @@
-import { Node as ProsemirrorNode } from 'prosemirror-model'
+import { Node as ProsemirrorNode } from '@tiptap/pm/model'
 
 export interface Result {
-  message: string,
-  from: number,
-  to: number,
+  message: string
+  from: number
+  to: number
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   fix?: Function
 }
 
@@ -16,6 +17,7 @@ export default class LinterPlugin {
     this.doc = doc
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   record(message: string, from: number, to: number, fix?: Function) {
     this.results.push({
       message,

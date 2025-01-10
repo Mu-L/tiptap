@@ -1,9 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
 import Superscript from '@tiptap/extension-superscript'
+import Text from '@tiptap/extension-text'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -21,24 +23,28 @@ export default () => {
 
   return (
     <>
-      <button
-        onClick={() => editor.chain().focus().toggleSuperscript().run()}
-        className={editor.isActive('superscript') ? 'is-active' : ''}
-      >
-        toggleSuperscript
-      </button>
-      <button
-        onClick={() => editor.chain().focus().setSuperscript().run()}
-        disabled={editor.isActive('superscript')}
-      >
-        setSuperscript
-      </button>
-      <button
-        onClick={() => editor.chain().focus().unsetSuperscript().run()}
-        disabled={!editor.isActive('superscript')}
-      >
-        unsetSuperscript
-      </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button
+            onClick={() => editor.chain().focus().toggleSuperscript().run()}
+            className={editor.isActive('superscript') ? 'is-active' : ''}
+          >
+            Toggle superscript
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setSuperscript().run()}
+            disabled={editor.isActive('superscript')}
+          >
+            Set superscript
+          </button>
+          <button
+            onClick={() => editor.chain().focus().unsetSuperscript().run()}
+            disabled={!editor.isActive('superscript')}
+          >
+            Unset superscript
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
     </>

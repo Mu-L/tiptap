@@ -1,13 +1,15 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
+import Code from '@tiptap/extension-code'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import Code from '@tiptap/extension-code'
 import Typography from '@tiptap/extension-typography'
-import { ColorHighlighter } from './ColorHighlighter'
-import { SmilieReplacer } from './SmilieReplacer'
-import './styles.scss'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
+
+import { ColorHighlighter } from './ColorHighlighter.ts'
+import { SmilieReplacer } from './SmilieReplacer.ts'
 
 export default () => {
   const editor = useEditor({
@@ -22,7 +24,7 @@ export default () => {
     ],
     content: `
       <p>
-        → With the Typography extension, tiptap understands »what you mean« and adds correct characters to your text — it’s like a “typography nerd” on your side.
+        → With the Typography extension, Tiptap understands »what you mean« and adds correct characters to your text — it’s like a “typography nerd” on your side.
       </p>
       <p>
         Try it out and type <code>(c)</code>, <code>-></code>, <code>>></code>, <code>1/2</code>, <code>!=</code>, <code>--</code> or <code>1x1</code> here:

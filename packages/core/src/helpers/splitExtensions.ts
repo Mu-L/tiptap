@@ -1,7 +1,7 @@
-import { Extensions } from '../types'
-import { Extension } from '../Extension'
-import { Node } from '../Node'
-import { Mark } from '../Mark'
+import { Extension } from '../Extension.js'
+import { Mark } from '../Mark.js'
+import { Node } from '../Node.js'
+import { Extensions } from '../types.js'
 
 export function splitExtensions(extensions: Extensions) {
   const baseExtensions = extensions.filter(extension => extension.type === 'extension') as Extension[]

@@ -1,11 +1,12 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
+import BulletList from '@tiptap/extension-bullet-list'
 import Document from '@tiptap/extension-document'
+import ListItem from '@tiptap/extension-list-item'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import BulletList from '@tiptap/extension-bullet-list'
-import ListItem from '@tiptap/extension-list-item'
-import './styles.scss'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -24,30 +25,34 @@ export default () => {
 
   return (
     <>
-      <button
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={editor.isActive('bulletList') ? 'is-active' : ''}
-      >
-        toggleBulletList
-      </button>
-      <button
-        onClick={() => editor.chain().focus().splitListItem('listItem').run()}
-        disabled={!editor.can().splitListItem('listItem')}
-      >
-        splitListItem
-      </button>
-      <button
-        onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-        disabled={!editor.can().sinkListItem('listItem')}
-      >
-        sinkListItem
-      </button>
-      <button
-        onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-        disabled={!editor.can().liftListItem('listItem')}
-      >
-        liftListItem
-      </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={editor.isActive('bulletList') ? 'is-active' : ''}
+          >
+            Toggle bullet list
+          </button>
+          <button
+            onClick={() => editor.chain().focus().splitListItem('listItem').run()}
+            disabled={!editor.can().splitListItem('listItem')}
+          >
+            Split list item
+          </button>
+          <button
+            onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
+            disabled={!editor.can().sinkListItem('listItem')}
+          >
+            Sink list item
+          </button>
+          <button
+            onClick={() => editor.chain().focus().liftListItem('listItem').run()}
+            disabled={!editor.can().liftListItem('listItem')}
+          >
+            Lift list item
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
     </>

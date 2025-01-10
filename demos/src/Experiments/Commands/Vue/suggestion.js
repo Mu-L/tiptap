@@ -1,12 +1,13 @@
-import tippy from 'tippy.js'
 import { VueRenderer } from '@tiptap/vue-3'
+import tippy from 'tippy.js'
+
 import CommandsList from './CommandsList.vue'
 
 export default {
   items: ({ query }) => {
     return [
       {
-        title: 'H1',
+        title: 'Heading 1',
         command: ({ editor, range }) => {
           editor
             .chain()
@@ -17,7 +18,7 @@ export default {
         },
       },
       {
-        title: 'H2',
+        title: 'Heading 2',
         command: ({ editor, range }) => {
           editor
             .chain()
@@ -28,7 +29,7 @@ export default {
         },
       },
       {
-        title: 'bold',
+        title: 'Bold',
         command: ({ editor, range }) => {
           editor
             .chain()
@@ -39,7 +40,7 @@ export default {
         },
       },
       {
-        title: 'italic',
+        title: 'Italic',
         command: ({ editor, range }) => {
           editor
             .chain()
@@ -66,6 +67,10 @@ export default {
           editor: props.editor,
         })
 
+        if (!props.clientRect) {
+          return
+        }
+
         popup = tippy('body', {
           getReferenceClientRect: props.clientRect,
           appendTo: () => document.body,
@@ -79,6 +84,10 @@ export default {
 
       onUpdate(props) {
         component.updateProps(props)
+
+        if (!props.clientRect) {
+          return
+        }
 
         popup[0].setProps({
           getReferenceClientRect: props.clientRect,

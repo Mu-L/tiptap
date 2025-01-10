@@ -1,14 +1,17 @@
-import { Selection, NodeSelection } from 'prosemirror-state'
-import { minMax } from '../utilities/minMax'
-import { RawCommands } from '../types'
+import { NodeSelection } from '@tiptap/pm/state'
+
+import { RawCommands } from '../types.js'
+import { minMax } from '../utilities/minMax.js'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     setNodeSelection: {
       /**
        * Creates a NodeSelection.
+       * @param position - Position of the node.
+       * @example editor.commands.setNodeSelection(10)
        */
-      setNodeSelection: (position: number) => ReturnType,
+      setNodeSelection: (position: number) => ReturnType
     }
   }
 }
@@ -16,10 +19,8 @@ declare module '@tiptap/core' {
 export const setNodeSelection: RawCommands['setNodeSelection'] = position => ({ tr, dispatch }) => {
   if (dispatch) {
     const { doc } = tr
-    const minPos = Selection.atStart(doc).from
-    const maxPos = Selection.atEnd(doc).to
-    const resolvedPos = minMax(position, minPos, maxPos)
-    const selection = NodeSelection.create(doc, resolvedPos)
+    const from = minMax(position, 0, doc.content.size)
+    const selection = NodeSelection.create(doc, from)
 
     tr.setSelection(selection)
   }

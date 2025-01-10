@@ -1,8 +1,8 @@
-import { Extensions } from '../types'
-import { NodeConfig } from '..'
-import { splitExtensions } from './splitExtensions'
-import { callOrReturn } from '../utilities/callOrReturn'
-import { getExtensionField } from '../helpers/getExtensionField'
+import { getExtensionField } from '../helpers/getExtensionField.js'
+import { NodeConfig } from '../index.js'
+import { Extensions } from '../types.js'
+import { callOrReturn } from '../utilities/callOrReturn.js'
+import { splitExtensions } from './splitExtensions.js'
 
 export function isList(name: string, extensions: Extensions): boolean {
   const { nodeExtensions } = splitExtensions(extensions)

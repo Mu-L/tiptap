@@ -1,12 +1,13 @@
-import React from 'react'
+import './styles.scss'
+
 import {
-  useEditor,
-  EditorContent,
   BubbleMenu,
+  EditorContent,
   FloatingMenu,
+  useEditor,
 } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import './styles.scss'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -63,7 +64,7 @@ export default () => {
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={editor.isActive('bulletList') ? 'is-active' : ''}
         >
-          Bullet List
+          Bullet list
         </button>
       </FloatingMenu>}
 

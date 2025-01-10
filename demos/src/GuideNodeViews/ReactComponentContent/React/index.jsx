@@ -1,8 +1,10 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import ReactComponent from './Extension.js'
 import './styles.scss'
+
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import React from 'react'
+
+import ReactComponent from './Extension.js'
 
 export default () => {
   const editor = useEditor({
@@ -15,7 +17,7 @@ export default () => {
       This is still the text editor you’re used to, but enriched with node views.
     </p>
     <react-component>
-      <p>This is editable.</p>
+      <p>This is editable. You can create a new component by pressing Mod+Enter.</p>
     </react-component>
     <p>
       Did you see that? That’s a React component. We are really living in the future.

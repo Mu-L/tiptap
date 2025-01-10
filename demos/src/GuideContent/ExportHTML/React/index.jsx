@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
 import './styles.scss'
+
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import React, { useCallback, useEffect, useState } from 'react'
 
 export default () => {
   const [html, setHtml] = useState(null)
@@ -16,7 +17,7 @@ export default () => {
 
   useEffect(() => {
     if (!editor) {
-      return null
+      return undefined
     }
 
     // Get the initial content …
@@ -53,31 +54,33 @@ export default () => {
 
   return (
     <>
-      <div className="actions">
-        <button className="button" onClick={setContent}>
-          Set Content
-        </button>
-        <button className="button" onClick={clearContent}>
-          Clear Content
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className={editor.isActive('bold') ? 'is-active' : ''}
-        >
-          Bold
-        </button>
-        <button
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={editor.isActive('italic') ? 'is-active' : ''}
-        >
-          Italic
-        </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button className="button" onClick={setContent}>
+            Set content
+          </button>
+          <button className="button" onClick={clearContent}>
+            Clear content
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={editor.isActive('bold') ? 'is-active' : ''}
+          >
+            Bold
+          </button>
+          <button
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={editor.isActive('italic') ? 'is-active' : ''}
+          >
+            Italic
+          </button>
+        </div>
       </div>
 
       <EditorContent editor={editor} />
 
-      <div className="export">
-        <h3>HTML</h3>
+      <div className="output-group">
+        <label>HTML</label>
         <pre>
           <code>{html}</code>
         </pre>

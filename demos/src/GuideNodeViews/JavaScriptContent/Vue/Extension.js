@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core'
+import { mergeAttributes, Node } from '@tiptap/core'
 
 export default Node.create({
   name: 'nodeView',
@@ -34,15 +34,15 @@ export default Node.create({
 
       dom.classList.add('node-view')
 
-      const label = document.createElement('span')
+      const label = document.createElement('label')
 
-      label.classList.add('label')
       label.innerHTML = 'Node view'
       label.contentEditable = false
 
       const content = document.createElement('div')
 
       content.classList.add('content')
+      content.classList.add('is-editable')
 
       dom.append(label, content)
 

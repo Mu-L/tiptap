@@ -1,21 +1,24 @@
-import React, {
-  useState, useCallback, useEffect,
-} from 'react'
-import * as Y from 'yjs'
-import { useEditor, EditorContent } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import TaskList from '@tiptap/extension-task-list'
-import TaskItem from '@tiptap/extension-task-item'
-import Highlight from '@tiptap/extension-highlight'
+import './styles.scss'
+
+import { TiptapCollabProvider } from '@hocuspocus/provider'
 import CharacterCount from '@tiptap/extension-character-count'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
-import { HocuspocusProvider } from '@hocuspocus/provider'
-import MenuBar from './MenuBar'
-import './styles.scss'
+import Highlight from '@tiptap/extension-highlight'
+import TaskItem from '@tiptap/extension-task-item'
+import TaskList from '@tiptap/extension-task-list'
+import { EditorContent, useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import React, {
+  useCallback, useEffect,
+  useState,
+} from 'react'
+import * as Y from 'yjs'
+
+import { variables } from '../../../variables.js'
+import MenuBar from './MenuBar.jsx'
 
 const colors = ['#958DF1', '#F98181', '#FBBC88', '#FAF594', '#70CFF8', '#94FADB', '#B9F18D']
-const rooms = ['rooms.10', 'rooms.11', 'rooms.12']
 const names = [
   'Lea Thompson',
   'Cyndi Lauper',
@@ -46,18 +49,19 @@ const names = [
 
 const getRandomElement = list => list[Math.floor(Math.random() * list.length)]
 
-const getRandomRoom = () => getRandomElement(rooms)
+const getRandomRoom = () => {
+  const roomNumbers = variables.collabRooms?.trim()?.split(',') ?? [10, 11, 12]
+
+  return getRandomElement(roomNumbers.map(number => `rooms.${number}`))
+}
 const getRandomColor = () => getRandomElement(colors)
 const getRandomName = () => getRandomElement(names)
 
 const room = getRandomRoom()
 
 const ydoc = new Y.Doc()
-const websocketProvider = new HocuspocusProvider({
-  url: 'wss://connect.hocuspocus.cloud',
-  parameters: {
-    key: 'write_B0sHbuV5xwYl6WzGjoqL',
-  },
+const websocketProvider = new TiptapCollabProvider({
+  appId: '7j9y6m10',
   name: room,
   document: ydoc,
 })
@@ -121,15 +125,15 @@ export default () => {
       {editor && <MenuBar editor={editor} />}
       <EditorContent className="editor__content" editor={editor} />
       <div className="editor__footer">
-          <div className={`editor__status editor__status--${status}`}>
-            {status === 'connected'
-              ? `${editor.storage.collaborationCursor.users.length} user${editor.storage.collaborationCursor.users.length === 1 ? '' : 's'} online in ${room}`
-              : 'offline'}
-          </div>
-          <div className="editor__name">
-            <button onClick={setName}>{currentUser.name}</button>
-          </div>
+        <div className={`editor__status editor__status--${status}`}>
+          {status === 'connected'
+            ? `${editor.storage.collaborationCursor.users.length} user${editor.storage.collaborationCursor.users.length === 1 ? '' : 's'} online in ${room}`
+            : 'offline'}
         </div>
+        <div className="editor__name">
+          <button onClick={setName}>{currentUser.name}</button>
+        </div>
+      </div>
     </div>
   )
 }

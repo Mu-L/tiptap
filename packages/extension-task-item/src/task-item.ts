@@ -1,12 +1,48 @@
-import { Node, mergeAttributes, wrappingInputRule } from '@tiptap/core'
+import {
+  KeyboardShortcutCommand, mergeAttributes, Node, wrappingInputRule,
+} from '@tiptap/core'
+import { Node as ProseMirrorNode } from '@tiptap/pm/model'
 
 export interface TaskItemOptions {
-  nested: boolean,
-  HTMLAttributes: Record<string, any>,
+  /**
+   * A callback function that is called when the checkbox is clicked while the editor is in readonly mode.
+   * @param node The prosemirror node of the task item
+   * @param checked The new checked state
+   * @returns boolean
+   */
+  onReadOnlyChecked?: (node: ProseMirrorNode, checked: boolean) => boolean
+
+  /**
+   * Controls whether the task items can be nested or not.
+   * @default false
+   * @example true
+   */
+  nested: boolean
+
+  /**
+   * HTML attributes to add to the task item element.
+   * @default {}
+   * @example { class: 'foo' }
+   */
+  HTMLAttributes: Record<string, any>
+
+  /**
+   * The node type for taskList nodes
+   * @default 'taskList'
+   * @example 'myCustomTaskList'
+   */
+  taskListTypeName: string
 }
 
-export const inputRegex = /^\s*(\[([ |x])\])\s$/
+/**
+ * Matches a task item to a - [ ] on input.
+ */
+export const inputRegex = /^\s*(\[([( |x])?\])\s$/
 
+/**
+ * This extension allows you to create task items.
+ * @see https://www.tiptap.dev/api/nodes/task-item
+ */
 export const TaskItem = Node.create<TaskItemOptions>({
   name: 'taskItem',
 
@@ -14,6 +50,7 @@ export const TaskItem = Node.create<TaskItemOptions>({
     return {
       nested: false,
       HTMLAttributes: {},
+      taskListTypeName: 'taskList',
     }
   },
 
@@ -28,7 +65,11 @@ export const TaskItem = Node.create<TaskItemOptions>({
       checked: {
         default: false,
         keepOnSplit: false,
-        parseHTML: element => element.getAttribute('data-checked') === 'true',
+        parseHTML: element => {
+          const dataChecked = element.getAttribute('data-checked')
+
+          return dataChecked === '' || dataChecked === 'true'
+        },
         renderHTML: attributes => ({
           'data-checked': attributes.checked,
         }),
@@ -48,33 +89,28 @@ export const TaskItem = Node.create<TaskItemOptions>({
   renderHTML({ node, HTMLAttributes }) {
     return [
       'li',
-      mergeAttributes(
-        this.options.HTMLAttributes,
-        HTMLAttributes,
-        { 'data-type': this.name },
-      ),
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        'data-type': this.name,
+      }),
       [
         'label',
         [
           'input',
           {
             type: 'checkbox',
-            checked: node.attrs.checked
-              ? 'checked'
-              : null,
+            checked: node.attrs.checked ? 'checked' : null,
           },
         ],
         ['span'],
       ],
-      [
-        'div',
-        0,
-      ],
+      ['div', 0],
     ]
   },
 
   addKeyboardShortcuts() {
-    const shortcuts = {
+    const shortcuts: {
+      [key: string]: KeyboardShortcutCommand
+    } = {
       Enter: () => this.editor.commands.splitListItem(this.name),
       'Shift-Tab': () => this.editor.commands.liftListItem(this.name),
     }
@@ -91,10 +127,7 @@ export const TaskItem = Node.create<TaskItemOptions>({
 
   addNodeView() {
     return ({
-      node,
-      HTMLAttributes,
-      getPos,
-      editor,
+      node, HTMLAttributes, getPos, editor,
     }) => {
       const listItem = document.createElement('li')
       const checkboxWrapper = document.createElement('label')
@@ -104,10 +137,11 @@ export const TaskItem = Node.create<TaskItemOptions>({
 
       checkboxWrapper.contentEditable = 'false'
       checkbox.type = 'checkbox'
+      checkbox.addEventListener('mousedown', event => event.preventDefault())
       checkbox.addEventListener('change', event => {
-        // if the editor isn’t editable
-        // we have to undo the latest change
-        if (!editor.isEditable) {
+        // if the editor isn’t editable and we don't have a handler for
+        // readonly checks we have to undo the latest change
+        if (!editor.isEditable && !this.options.onReadOnlyChecked) {
           checkbox.checked = !checkbox.checked
 
           return
@@ -121,6 +155,10 @@ export const TaskItem = Node.create<TaskItemOptions>({
             .focus(undefined, { scrollIntoView: false })
             .command(({ tr }) => {
               const position = getPos()
+
+              if (typeof position !== 'number') {
+                return false
+              }
               const currentNode = tr.doc.nodeAt(position)
 
               tr.setNodeMarkup(position, undefined, {
@@ -132,6 +170,12 @@ export const TaskItem = Node.create<TaskItemOptions>({
             })
             .run()
         }
+        if (!editor.isEditable && this.options.onReadOnlyChecked) {
+          // Reset state if onReadOnlyChecked returns false
+          if (!this.options.onReadOnlyChecked(node, checked)) {
+            checkbox.checked = !checkbox.checked
+          }
+        }
       })
 
       Object.entries(this.options.HTMLAttributes).forEach(([key, value]) => {
@@ -139,18 +183,14 @@ export const TaskItem = Node.create<TaskItemOptions>({
       })
 
       listItem.dataset.checked = node.attrs.checked
-      if (node.attrs.checked) {
-        checkbox.setAttribute('checked', 'checked')
-      }
+      checkbox.checked = node.attrs.checked
 
       checkboxWrapper.append(checkbox, checkboxStyler)
       listItem.append(checkboxWrapper, content)
 
-      Object
-        .entries(HTMLAttributes)
-        .forEach(([key, value]) => {
-          listItem.setAttribute(key, value)
-        })
+      Object.entries(HTMLAttributes).forEach(([key, value]) => {
+        listItem.setAttribute(key, value)
+      })
 
       return {
         dom: listItem,
@@ -161,11 +201,7 @@ export const TaskItem = Node.create<TaskItemOptions>({
           }
 
           listItem.dataset.checked = updatedNode.attrs.checked
-          if (updatedNode.attrs.checked) {
-            checkbox.setAttribute('checked', 'checked')
-          } else {
-            checkbox.removeAttribute('checked')
-          }
+          checkbox.checked = updatedNode.attrs.checked
 
           return true
         },

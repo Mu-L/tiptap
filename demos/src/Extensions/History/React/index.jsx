@@ -1,9 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
 import Document from '@tiptap/extension-document'
+import History from '@tiptap/extension-history'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import History from '@tiptap/extension-history'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -23,15 +25,19 @@ export default () => {
   }
 
   return (
-    <div>
-      <button onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
-        undo
-      </button>
-      <button onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
-        redo
-      </button>
+    <>
+      <div className="control-group">
+        <div className="button-group">
+          <button onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
+            Undo
+          </button>
+          <button onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}>
+            Redo
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
-    </div>
+    </>
   )
 }

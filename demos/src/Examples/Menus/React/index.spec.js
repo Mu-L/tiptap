@@ -4,19 +4,18 @@ context('/src/Examples/Menus/React/', () => {
   })
 
   beforeEach(() => {
-    cy.get('.ProseMirror').then(([{ editor }]) => {
+    cy.get('.tiptap').then(([{ editor }]) => {
       editor.chain().focus().clearContent().run()
     })
   })
 
-  // TODO: fix test
-  // it('should show menu when the editor is empty', () => {
-  //   cy.get('#app')
-  //     .find('[data-tippy-root]')
-  // })
+  it('should show menu when the editor is empty', () => {
+    cy.get('#app')
+      .find('[data-tippy-root]')
+  })
 
   it('should show menu when text is selected', () => {
-    cy.get('.ProseMirror')
+    cy.get('.tiptap')
       .type('Test')
       .type('{selectall}')
 
@@ -41,7 +40,7 @@ context('/src/Examples/Menus/React/', () => {
 
   marks.forEach(mark => {
     it(`should apply ${mark.button} correctly`, () => {
-      cy.get('.ProseMirror')
+      cy.get('.tiptap')
         .type('Test')
         .type('{selectall}')
 
@@ -50,7 +49,7 @@ context('/src/Examples/Menus/React/', () => {
         .contains(mark.button)
         .click()
 
-      cy.get('.ProseMirror')
+      cy.get('.tiptap')
         .find(`p ${mark.tag}`)
     })
   })

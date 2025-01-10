@@ -1,27 +1,30 @@
-import {
-  h,
-  ref,
-  PropType,
-  onMounted,
-  onBeforeUnmount,
-  defineComponent,
-} from 'vue'
 import { BubbleMenuPlugin, BubbleMenuPluginProps } from '@tiptap/extension-bubble-menu'
+import {
+  defineComponent,
+  h,
+  onBeforeUnmount,
+  onMounted,
+  PropType,
+  ref,
+} from 'vue'
 
 export const BubbleMenu = defineComponent({
   name: 'BubbleMenu',
 
   props: {
     pluginKey: {
-      // TODO: TypeScript breaks :(
-      // type: [String, Object as PropType<Exclude<BubbleMenuPluginProps['pluginKey'], string>>],
-      type: null,
+      type: [String, Object] as PropType<BubbleMenuPluginProps['pluginKey']>,
       default: 'bubbleMenu',
     },
 
     editor: {
       type: Object as PropType<BubbleMenuPluginProps['editor']>,
       required: true,
+    },
+
+    updateDelay: {
+      type: Number as PropType<BubbleMenuPluginProps['updateDelay']>,
+      default: undefined,
     },
 
     tippyOptions: {
@@ -40,18 +43,20 @@ export const BubbleMenu = defineComponent({
 
     onMounted(() => {
       const {
-        pluginKey,
+        updateDelay,
         editor,
-        tippyOptions,
+        pluginKey,
         shouldShow,
+        tippyOptions,
       } = props
 
       editor.registerPlugin(BubbleMenuPlugin({
-        pluginKey,
+        updateDelay,
         editor,
         element: root.value as HTMLElement,
-        tippyOptions,
+        pluginKey,
         shouldShow,
+        tippyOptions,
       }))
     })
 

@@ -1,16 +1,27 @@
-import { RawCommands, FocusPosition } from '../types'
-import { isTextSelection } from '../helpers/isTextSelection'
-import { isiOS } from '../utilities/isiOS'
-import { resolveFocusPosition } from '../helpers/resolveFocusPosition'
+import { isTextSelection } from '../helpers/isTextSelection.js'
+import { resolveFocusPosition } from '../helpers/resolveFocusPosition.js'
+import { FocusPosition, RawCommands } from '../types.js'
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     focus: {
       /**
        * Focus the editor at the given position.
+       * @param position The position to focus at.
+       * @param options.scrollIntoView Scroll the focused position into view after focusing
+       * @example editor.commands.focus()
+       * @example editor.commands.focus(32, { scrollIntoView: false })
        */
       focus: (
+        /**
+         * The position to focus at.
+         */
         position?: FocusPosition,
+
+        /**
+         * Optional options
+         * @default { scrollIntoView: true }
+         */
         options?: {
           scrollIntoView?: boolean,
         },
@@ -19,7 +30,7 @@ declare module '@tiptap/core' {
   }
 }
 
-export const focus: RawCommands['focus'] = (position = null, options) => ({
+export const focus: RawCommands['focus'] = (position = null, options = {}) => ({
   editor,
   view,
   tr,
@@ -31,11 +42,7 @@ export const focus: RawCommands['focus'] = (position = null, options) => ({
   }
 
   const delayedFocus = () => {
-    // focus within `requestAnimationFrame` breaks focus on iOS
-    // so we have to call this
-    if (isiOS()) {
-      (view.dom as HTMLElement).focus()
-    }
+    (view.dom as HTMLElement).focus()
 
     // For React we have to focus asynchronously. Otherwise wild things happen.
     // see: https://github.com/ueberdosis/tiptap/issues/1520
@@ -60,7 +67,9 @@ export const focus: RawCommands['focus'] = (position = null, options) => ({
     return true
   }
 
-  const selection = resolveFocusPosition(editor.state.doc, position) || editor.state.selection
+  // pass through tr.doc instead of editor.state.doc
+  // since transactions could change the editors state before this command has been run
+  const selection = resolveFocusPosition(tr.doc, position) || editor.state.selection
   const isSameSelection = editor.state.selection.eq(selection)
 
   if (dispatch) {

@@ -1,6 +1,7 @@
-import * as Y from 'yjs'
 import { Extension } from '@tiptap/core'
-import { AnnotationPlugin, AnnotationPluginKey } from './AnnotationPlugin'
+import * as Y from 'yjs'
+
+import { AnnotationPlugin, AnnotationPluginKey } from './AnnotationPlugin.js'
 
 export interface AddAnnotationAction {
   type: 'addAnnotation',
@@ -27,7 +28,7 @@ export interface AnnotationOptions {
   /**
    * An event listener which receives annotations for the current selection.
    */
-  onUpdate: (items: [any?]) => {},
+  onUpdate: (items: any[]) => object,
   /**
    * An initialized Y.js document.
    */
@@ -81,6 +82,7 @@ export const CollaborationAnnotation = Extension.create<AnnotationOptions>({
     const map = getMapFromOptions(this.options)
 
     map.observe(() => {
+      // eslint-disable-next-line
       console.log(`[${this.options.instance}] map updated  → createDecorations`)
 
       const transaction = this.editor.state.tr.setMeta(AnnotationPluginKey, {

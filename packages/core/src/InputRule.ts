@@ -1,57 +1,62 @@
-import { EditorState, Plugin, TextSelection } from 'prosemirror-state'
-import { Editor } from './Editor'
-import { CommandManager } from './CommandManager'
-import { createChainableState } from './helpers/createChainableState'
-import { isRegExp } from './utilities/isRegExp'
+import { Fragment, Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { EditorState, Plugin, TextSelection } from '@tiptap/pm/state'
+
+import { CommandManager } from './CommandManager.js'
+import { Editor } from './Editor.js'
+import { createChainableState } from './helpers/createChainableState.js'
+import { getHTMLFromFragment } from './helpers/getHTMLFromFragment.js'
+import { getTextContentFromNodes } from './helpers/getTextContentFromNodes.js'
 import {
-  Range,
-  ExtendedRegExpMatchArray,
-  SingleCommands,
-  ChainedCommands,
   CanCommands,
-} from './types'
+  ChainedCommands,
+  ExtendedRegExpMatchArray,
+  Range,
+  SingleCommands,
+} from './types.js'
+import { isRegExp } from './utilities/isRegExp.js'
 
 export type InputRuleMatch = {
-  index: number,
-  text: string,
-  replaceWith?: string,
-  match?: RegExpMatchArray,
-  data?: Record<string, any>,
-}
+  index: number;
+  text: string;
+  replaceWith?: string;
+  match?: RegExpMatchArray;
+  data?: Record<string, any>;
+};
 
-export type InputRuleFinder =
-  | RegExp
-  | ((text: string) => InputRuleMatch | null)
+export type InputRuleFinder = RegExp | ((text: string) => InputRuleMatch | null);
 
 export class InputRule {
   find: InputRuleFinder
 
   handler: (props: {
-    state: EditorState,
-    range: Range,
-    match: ExtendedRegExpMatchArray,
-    commands: SingleCommands,
-    chain: () => ChainedCommands,
-    can: () => CanCommands,
+    state: EditorState;
+    range: Range;
+    match: ExtendedRegExpMatchArray;
+    commands: SingleCommands;
+    chain: () => ChainedCommands;
+    can: () => CanCommands;
   }) => void | null
 
   constructor(config: {
-    find: InputRuleFinder,
+    find: InputRuleFinder;
     handler: (props: {
-      state: EditorState,
-      range: Range,
-      match: ExtendedRegExpMatchArray,
-      commands: SingleCommands,
-      chain: () => ChainedCommands,
-      can: () => CanCommands,
-    }) => void | null,
+      state: EditorState;
+      range: Range;
+      match: ExtendedRegExpMatchArray;
+      commands: SingleCommands;
+      chain: () => ChainedCommands;
+      can: () => CanCommands;
+    }) => void | null;
   }) {
     this.find = config.find
     this.handler = config.handler
   }
 }
 
-const inputRuleMatcherHandler = (text: string, find: InputRuleFinder): ExtendedRegExpMatchArray | null => {
+const inputRuleMatcherHandler = (
+  text: string,
+  find: InputRuleFinder,
+): ExtendedRegExpMatchArray | null => {
   if (isRegExp(find)) {
     return find.exec(text)
   }
@@ -62,16 +67,17 @@ const inputRuleMatcherHandler = (text: string, find: InputRuleFinder): ExtendedR
     return null
   }
 
-  const result: ExtendedRegExpMatchArray = []
+  const result: ExtendedRegExpMatchArray = [inputRuleMatch.text]
 
-  result.push(inputRuleMatch.text)
   result.index = inputRuleMatch.index
   result.input = text
   result.data = inputRuleMatch.data
 
   if (inputRuleMatch.replaceWith) {
     if (!inputRuleMatch.text.includes(inputRuleMatch.replaceWith)) {
-      console.warn('[tiptap warn]: "inputRuleMatch.replaceWith" must be part of "inputRuleMatch.text".')
+      console.warn(
+        '[tiptap warn]: "inputRuleMatch.replaceWith" must be part of "inputRuleMatch.text".',
+      )
     }
 
     result.push(inputRuleMatch.replaceWith)
@@ -81,20 +87,15 @@ const inputRuleMatcherHandler = (text: string, find: InputRuleFinder): ExtendedR
 }
 
 function run(config: {
-  editor: Editor,
-  from: number,
-  to: number,
-  text: string,
-  rules: InputRule[],
-  plugin: Plugin,
+  editor: Editor;
+  from: number;
+  to: number;
+  text: string;
+  rules: InputRule[];
+  plugin: Plugin;
 }): boolean {
   const {
-    editor,
-    from,
-    to,
-    text,
-    rules,
-    plugin,
+    editor, from, to, text, rules, plugin,
   } = config
   const { view } = editor
 
@@ -114,13 +115,8 @@ function run(config: {
   }
 
   let matched = false
-  const maxMatch = 500
-  const textBefore = $from.parent.textBetween(
-    Math.max(0, $from.parentOffset - maxMatch),
-    $from.parentOffset,
-    undefined,
-    ' ',
-  ) + text
+
+  const textBefore = getTextContentFromNodes($from) + text
 
   rules.forEach(rule => {
     if (matched) {
@@ -183,23 +179,54 @@ function run(config: {
  * input that matches any of the given rules to trigger the rule’s
  * action.
  */
-export function inputRulesPlugin(props: { editor: Editor, rules: InputRule[] }): Plugin {
+export function inputRulesPlugin(props: { editor: Editor; rules: InputRule[] }): Plugin {
   const { editor, rules } = props
   const plugin = new Plugin({
     state: {
       init() {
         return null
       },
-      apply(tr, prev) {
-        const stored = tr.getMeta(this)
+      apply(tr, prev, state) {
+        const stored = tr.getMeta(plugin)
 
         if (stored) {
           return stored
         }
 
-        return tr.selectionSet || tr.docChanged
-          ? null
-          : prev
+        // if InputRule is triggered by insertContent()
+        const simulatedInputMeta = tr.getMeta('applyInputRules') as
+          | undefined
+          | {
+              from: number;
+              text: string | ProseMirrorNode | Fragment;
+            }
+        const isSimulatedInput = !!simulatedInputMeta
+
+        if (isSimulatedInput) {
+          setTimeout(() => {
+            let { text } = simulatedInputMeta
+
+            if (typeof text === 'string') {
+              text = text as string
+            } else {
+              text = getHTMLFromFragment(Fragment.from(text), state.schema)
+            }
+
+            const { from } = simulatedInputMeta
+            const to = from + text.length
+
+            run({
+              editor,
+              from,
+              to,
+              text,
+              rules,
+              plugin,
+            })
+          })
+        }
+
+        return tr.selectionSet || tr.docChanged ? null : prev
       },
     },
 

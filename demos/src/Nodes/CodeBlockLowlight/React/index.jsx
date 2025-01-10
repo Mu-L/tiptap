@@ -1,18 +1,37 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-// load all highlight.js languages
-import lowlight from 'lowlight'
+import { EditorContent, useEditor } from '@tiptap/react'
+import css from 'highlight.js/lib/languages/css'
+import js from 'highlight.js/lib/languages/javascript'
+import ts from 'highlight.js/lib/languages/typescript'
+import html from 'highlight.js/lib/languages/xml'
+// load all languages with "all" or common languages with "common"
+import { all, createLowlight } from 'lowlight'
+import React from 'react'
 
-// load specific languages only
-// import lowlight from 'lowlight/lib/core'
-// import javascript from 'highlight.js/lib/languages/javascript'
-// lowlight.registerLanguage('javascript', javascript)
+// create a lowlight instance with all languages loaded
+const lowlight = createLowlight(all)
 
-import './styles.scss'
+// This is only an example, all supported languages are already loaded above
+// but you can also register only specific languages to reduce bundle-size
+lowlight.register('html', html)
+lowlight.register('css', css)
+lowlight.register('js', js)
+lowlight.register('ts', ts)
+
+/**
+ * Lowlight version 2.x had a different API
+ * import { lowlight } from 'lowlight'
+ *
+ * lowlight.registerLanguage('html', html)
+ * lowlight.registerLanguage('css', css)
+ * lowlight.registerLanguage('js', js)
+ * lowlight.registerLanguage('ts', ts)
+ */
 
 export default () => {
   const editor = useEditor({
@@ -26,7 +45,7 @@ export default () => {
     ],
     content: `
         <p>
-          That’s a boring paragraph followed by a fenced code block:
+          That's a boring paragraph followed by a fenced code block:
         </p>
         <pre><code class="language-javascript">for (var i=1; i <= 20; i++)
 {
@@ -51,18 +70,22 @@ export default () => {
 
   return (
     <>
-      <button
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={editor.isActive('codeBlock') ? 'is-active' : ''}
-      >
-        toggleCodeBlock
-      </button>
-      <button
-        onClick={() => editor.chain().focus().setCodeBlock().run()}
-        disabled={editor.isActive('codeBlock')}
-      >
-        setCodeBlock
-      </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            className={editor.isActive('codeBlock') ? 'is-active' : ''}
+          >
+            Toggle code block
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setCodeBlock().run()}
+            disabled={editor.isActive('codeBlock')}
+          >
+            Set code block
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
     </>

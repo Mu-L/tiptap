@@ -1,17 +1,26 @@
+import { EditorState, Transaction } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
+import {
+  absolutePositionToRelativePosition,
+  relativePositionToAbsolutePosition,
+  ySyncPluginKey,
+} from 'y-prosemirror'
 import * as Y from 'yjs'
-import { EditorState, Transaction } from 'prosemirror-state'
-import { Decoration, DecorationSet } from 'prosemirror-view'
-import { ySyncPluginKey, relativePositionToAbsolutePosition, absolutePositionToRelativePosition } from 'y-prosemirror'
-import { AddAnnotationAction, DeleteAnnotationAction, UpdateAnnotationAction } from './collaboration-annotation'
-import { AnnotationPluginKey } from './AnnotationPlugin'
-import { AnnotationItem } from './AnnotationItem'
+
+import { AnnotationItem } from './AnnotationItem.js'
+import { AnnotationPluginKey } from './AnnotationPlugin.js'
+import {
+  AddAnnotationAction,
+  DeleteAnnotationAction,
+  UpdateAnnotationAction,
+} from './collaboration-annotation.js'
 
 export interface AnnotationStateOptions {
   HTMLAttributes: {
     [key: string]: any
-  },
-  map: Y.Map<any>,
-  instance: string,
+  }
+  map: Y.Map<any>
+  instance: string
 }
 
 export class AnnotationState {
@@ -91,14 +100,28 @@ export class AnnotationState {
         return
       }
 
-      console.log(`[${this.options.instance}] Decoration.inline()`, from, to, HTMLAttributes, { id, data: annotation.data })
+      // eslint-disable-next-line
+      console.log(`[${this.options.instance}] Decoration.inline()`, from, to, HTMLAttributes, {
+        id,
+        data: annotation.data,
+      })
 
       if (from === to) {
-        console.warn(`[${this.options.instance}] corrupt decoration `, annotation.from, from, annotation.to, to)
+        console.warn(
+          `[${this.options.instance}] corrupt decoration `,
+          annotation.from,
+          from,
+          annotation.to,
+          to,
+        )
       }
 
       decorations.push(
-        Decoration.inline(from, to, HTMLAttributes, { id, data: annotation.data, inclusiveEnd: true }),
+        Decoration.inline(from, to, HTMLAttributes, {
+          id,
+          data: annotation.data,
+          inclusiveEnd: true,
+        }),
       )
     })
 
@@ -107,9 +130,13 @@ export class AnnotationState {
 
   apply(transaction: Transaction, state: EditorState) {
     // Add/Remove annotations
-    const action = transaction.getMeta(AnnotationPluginKey) as AddAnnotationAction | UpdateAnnotationAction | DeleteAnnotationAction
+    const action = transaction.getMeta(AnnotationPluginKey) as
+      | AddAnnotationAction
+      | UpdateAnnotationAction
+      | DeleteAnnotationAction
 
     if (action && action.type) {
+      // eslint-disable-next-line
       console.log(`[${this.options.instance}] action: ${action.type}`)
 
       if (action.type === 'addAnnotation') {
@@ -136,6 +163,7 @@ export class AnnotationState {
     const ystate = ySyncPluginKey.getState(state)
 
     if (ystate.isChangeOrigin) {
+      // eslint-disable-next-line
       console.log(`[${this.options.instance}] isChangeOrigin: true → createDecorations`)
       this.createDecorations(state)
 
@@ -143,6 +171,7 @@ export class AnnotationState {
     }
 
     // Use ProseMirror to update positions
+    // eslint-disable-next-line
     console.log(`[${this.options.instance}] isChangeOrigin: false → ProseMirror mapping`)
     this.decorations = this.decorations.map(transaction.mapping, transaction.doc)
 

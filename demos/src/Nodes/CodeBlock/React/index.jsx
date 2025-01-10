@@ -1,10 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
+import CodeBlock from '@tiptap/extension-code-block'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import CodeBlock from '@tiptap/extension-code-block'
-import './styles.scss'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -36,18 +37,22 @@ export default () => {
 
   return (
     <>
-      <button
-        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        className={editor.isActive('codeBlock') ? 'is-active' : ''}
-      >
-        toggleCodeBlock
-      </button>
-      <button
-        onClick={() => editor.chain().focus().setCodeBlock().run()}
-        disabled={editor.isActive('codeBlock')}
-      >
-        setCodeBlock
-      </button>
+      <div className="control-group">
+        <div className="button-group">
+          <button
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            className={editor.isActive('codeBlock') ? 'is-active' : ''}
+          >
+            Toggle code block
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setCodeBlock().run()}
+            disabled={editor.isActive('codeBlock')}
+          >
+            Set code block
+          </button>
+        </div>
+      </div>
 
       <EditorContent editor={editor} />
     </>

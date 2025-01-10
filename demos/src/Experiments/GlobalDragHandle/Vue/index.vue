@@ -5,8 +5,9 @@
 </template>
 
 <script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+
 import DragHandle from './DragHandle.js'
 
 export default {
@@ -27,16 +28,17 @@ export default {
         DragHandle,
       ],
       content: `
-        <p>paragraph 1</p>
-        <p>paragraph 2</p>
-        <p>paragraph 3</p>
+        <p>Paragraph 1</p>
+        <p>Paragraph 2</p>
+        <p>Paragraph 3</p>
         <ul>
-          <li>list item 1</li>
-          <li>list item 2</li>
+          <li>List item 1</li>
+          <li>List item 2</li>
         </ul>
-        <pre>code</pre>
+        <pre>Code</pre>
       `,
       onUpdate: () => {
+        // eslint-disable-next-line
         console.log(this.editor.getHTML())
       },
     })
@@ -69,7 +71,7 @@ export default {
 </style>
 
 <style lang="scss">
-.ProseMirror {
+.tiptap {
   padding: 0 1rem;
 
   > * + * {

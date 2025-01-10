@@ -1,46 +1,54 @@
 <template>
   <div>
-    <div v-if="editor">
-      <h2>
-        Original Editor
-      </h2>
-      <button @click="addComment" :disabled="!editor.can().addAnnotation()">
-        comment
-      </button>
-      <editor-content :editor="editor" />
-      <div v-for="comment in comments" :key="comment.id">
+    <div v-if="editor" class="container">
+      <div class="control-group">
+        <h2>Original Editor</h2>
+        <div class="button-group">
+          <button @click="addComment" :disabled="!editor.can().addAnnotation()">
+            Comment
+          </button>
+        </div>
+      </div>
+      <editor-content class="editor-1" :editor="editor" />
+
+      <div class="output-group" v-for="comment in comments" :key="comment.id">
         {{ comment }}
 
-        <button @click="updateComment(comment.id)">
-          update
-        </button>
+        <div class="button-group">
+          <button @click="updateComment(comment.id)">
+            Update
+          </button>
 
-        <button @click="deleteComment(comment.id)">
-          remove
-        </button>
+          <button @click="deleteComment(comment.id)">
+            Remove
+          </button>
+        </div>
       </div>
 
-      <h2>
-        Another Editor
-      </h2>
-      <button @click="addAnotherComment" :disabled="!anotherEditor.can().addAnnotation()">
-        comment
-      </button>
-      <editor-content :editor="anotherEditor" />
+      <div class="control-group">
+        <h2>Another Editor</h2>
+        <div class="button-group">
+          <button @click="addAnotherComment" :disabled="!anotherEditor.can().addAnnotation()">
+            Comment
+          </button>
+        </div>
+      </div>
+      <editor-content class="editor-2" :editor="anotherEditor" />
     </div>
   </div>
 </template>
 
 <script>
-import { Editor, EditorContent } from '@tiptap/vue-3'
+import Bold from '@tiptap/extension-bold'
+import Collaboration from '@tiptap/extension-collaboration'
 import Document from '@tiptap/extension-document'
+import Heading from '@tiptap/extension-heading'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import Collaboration from '@tiptap/extension-collaboration'
-import Bold from '@tiptap/extension-bold'
-import Heading from '@tiptap/extension-heading'
+import { Editor, EditorContent } from '@tiptap/vue-3'
 import * as Y from 'yjs'
-import CollaborationAnnotation from './extension'
+
+import CollaborationAnnotation from './extension/index.ts'
 
 export default {
   components: {
@@ -52,12 +60,11 @@ export default {
       editor: null,
       anotherEditor: null,
       comments: [],
-      ydoc: new Y.Doc(),
     }
   },
 
   mounted() {
-    this.ydoc = new Y.Doc()
+    const ydoc = new Y.Doc()
 
     this.editor = new Editor({
       extensions: [
@@ -67,12 +74,12 @@ export default {
         Bold,
         Heading,
         CollaborationAnnotation.configure({
-          document: this.ydoc,
+          document: ydoc,
           onUpdate: items => { this.comments = items },
           instance: 'editor1',
         }),
         Collaboration.configure({
-          document: this.ydoc,
+          document: ydoc,
         }),
       ],
       content: `
@@ -80,7 +87,7 @@ export default {
           Annotations can be used to add additional information to the content, for example comments. They live on a different level than the actual editor content.
         </p>
         <p>
-          This example allows you to add plain text, but you’re free to add more complex data, for example JSON from another tiptap instance. :-)
+          This example allows you to add plain text, but you’re free to add more complex data, for example JSON from another Tiptap instance. :-)
         </p>
       `,
     })
@@ -93,11 +100,11 @@ export default {
         Bold,
         Heading,
         CollaborationAnnotation.configure({
-          document: this.ydoc,
+          document: ydoc,
           instance: 'editor2',
         }),
         Collaboration.configure({
-          document: this.ydoc,
+          document: ydoc,
         }),
       ],
     })
@@ -137,9 +144,45 @@ export default {
 
 <style lang="scss">
 /* Basic editor styles */
-.ProseMirror {
-  > * + * {
-    margin-top: 0.75em;
+.tiptap {
+  :first-child {
+    margin-top: 0;
+  }
+
+  /* Heading styles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.1;
+    margin-top: 2.5rem;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2 {
+    margin-top: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1rem;
   }
 }
 

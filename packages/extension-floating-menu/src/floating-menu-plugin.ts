@@ -1,23 +1,57 @@
-import { Editor, posToDOMRect } from '@tiptap/core'
-import { EditorState, Plugin, PluginKey } from 'prosemirror-state'
-import { EditorView } from 'prosemirror-view'
+import {
+  Editor, getText, getTextSerializersFromSchema, posToDOMRect,
+} from '@tiptap/core'
+import { Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { EditorState, Plugin, PluginKey } from '@tiptap/pm/state'
+import { EditorView } from '@tiptap/pm/view'
 import tippy, { Instance, Props } from 'tippy.js'
 
 export interface FloatingMenuPluginProps {
-  pluginKey: PluginKey | string,
-  editor: Editor,
-  element: HTMLElement,
-  tippyOptions?: Partial<Props>,
-  shouldShow?: ((props: {
-    editor: Editor,
-    view: EditorView,
-    state: EditorState,
-    oldState?: EditorState,
-  }) => boolean) | null,
+  /**
+   * The plugin key for the floating menu.
+   * @default 'floatingMenu'
+   */
+  pluginKey: PluginKey | string
+
+  /**
+   * The editor instance.
+   * @default null
+   */
+  editor: Editor
+
+  /**
+   * The DOM element that contains your menu.
+   * @default null
+   */
+  element: HTMLElement
+
+  /**
+   * The options for the tippy instance.
+   * @default {}
+   * @see https://atomiks.github.io/tippyjs/v6/all-props/
+   */
+  tippyOptions?: Partial<Props>
+
+  /**
+   * A function that determines whether the menu should be shown or not.
+   * If this function returns `false`, the menu will be hidden, otherwise it will be shown.
+   * @default null
+   */
+  shouldShow?:
+    | ((props: {
+        editor: Editor
+        view: EditorView
+        state: EditorState
+        oldState?: EditorState
+      }) => boolean)
+    | null
 }
 
 export type FloatingMenuViewProps = FloatingMenuPluginProps & {
-  view: EditorView,
+  /**
+   * The editor view.
+   */
+  view: EditorView
 }
 
 export class FloatingMenuView {
@@ -33,19 +67,23 @@ export class FloatingMenuView {
 
   public tippyOptions?: Partial<Props>
 
+  private getTextContent(node:ProseMirrorNode) {
+    return getText(node, { textSerializers: getTextSerializersFromSchema(this.editor.schema) })
+  }
+
   public shouldShow: Exclude<FloatingMenuPluginProps['shouldShow'], null> = ({ view, state }) => {
     const { selection } = state
     const { $anchor, empty } = selection
     const isRootDepth = $anchor.depth === 1
-    const isEmptyTextBlock = $anchor.parent.isTextblock
-      && !$anchor.parent.type.spec.code
-      && !$anchor.parent.textContent
+
+    const isEmptyTextBlock = $anchor.parent.isTextblock && !$anchor.parent.type.spec.code && !$anchor.parent.textContent && $anchor.parent.childCount === 0 && !this.getTextContent($anchor.parent)
 
     if (
       !view.hasFocus()
       || !empty
       || !isRootDepth
       || !isEmptyTextBlock
+      || !this.editor.isEditable
     ) {
       return false
     }
@@ -54,11 +92,7 @@ export class FloatingMenuView {
   }
 
   constructor({
-    editor,
-    element,
-    view,
-    tippyOptions = {},
-    shouldShow,
+    editor, element, view, tippyOptions = {}, shouldShow,
   }: FloatingMenuViewProps) {
     this.editor = editor
     this.element = element
@@ -93,14 +127,21 @@ export class FloatingMenuView {
       return
     }
 
+    if (event?.relatedTarget && this.element.parentNode?.contains(event.relatedTarget as Node)) {
+      return
+    }
+
     if (
-      event?.relatedTarget
-      && this.element.parentNode?.contains(event.relatedTarget as Node)
+      event?.relatedTarget === this.editor.view.dom
     ) {
       return
     }
 
     this.hide()
+  }
+
+  tippyBlurHandler = (event: FocusEvent) => {
+    this.blurHandler({ event })
   }
 
   createTooltip() {
@@ -124,9 +165,7 @@ export class FloatingMenuView {
 
     // maybe we have to hide tippy on its own blur event as well
     if (this.tippy.popper.firstChild) {
-      (this.tippy.popper.firstChild as HTMLElement).addEventListener('blur', event => {
-        this.blurHandler({ event })
-      })
+      (this.tippy.popper.firstChild as HTMLElement).addEventListener('blur', this.tippyBlurHandler)
     }
   }
 
@@ -156,7 +195,8 @@ export class FloatingMenuView {
     }
 
     this.tippy?.setProps({
-      getReferenceClientRect: () => posToDOMRect(view, from, to),
+      getReferenceClientRect:
+        this.tippyOptions?.getReferenceClientRect || (() => posToDOMRect(view, from, to)),
     })
 
     this.show()
@@ -171,6 +211,12 @@ export class FloatingMenuView {
   }
 
   destroy() {
+    if (this.tippy?.popper.firstChild) {
+      (this.tippy.popper.firstChild as HTMLElement).removeEventListener(
+        'blur',
+        this.tippyBlurHandler,
+      )
+    }
     this.tippy?.destroy()
     this.element.removeEventListener('mousedown', this.mousedownHandler, { capture: true })
     this.editor.off('focus', this.focusHandler)
@@ -180,9 +226,8 @@ export class FloatingMenuView {
 
 export const FloatingMenuPlugin = (options: FloatingMenuPluginProps) => {
   return new Plugin({
-    key: typeof options.pluginKey === 'string'
-      ? new PluginKey(options.pluginKey)
-      : options.pluginKey,
+    key:
+      typeof options.pluginKey === 'string' ? new PluginKey(options.pluginKey) : options.pluginKey,
     view: view => new FloatingMenuView({ view, ...options }),
   })
 }

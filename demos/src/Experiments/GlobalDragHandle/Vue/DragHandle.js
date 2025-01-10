@@ -1,6 +1,6 @@
 import { Extension } from '@tiptap/core'
-import { NodeSelection, Plugin } from 'prosemirror-state'
-import { serializeForClipboard } from 'prosemirror-view/src/clipboard'
+import { NodeSelection, Plugin } from '@tiptap/pm/state'
+import { __serializeForClipboard as serializeForClipboard } from '@tiptap/pm/view'
 
 function removeNode(node) {
   node.parentNode.removeChild(node)
@@ -25,7 +25,8 @@ export default Extension.create({
       node = node.node
 
       while (node && node.parentNode) {
-        if (node.parentNode?.classList?.contains('ProseMirror')) { // todo
+        if (node.parentNode?.classList?.contains('ProseMirror')) {
+          // todo
           break
         }
 
@@ -43,7 +44,8 @@ export default Extension.create({
     }
 
     function dragStart(e, view) {
-      view.composing = true
+      // Must delete this line, Otherwise: Uncaught TypeError: Cannot set property composing of #<EditorView> which has only a getter
+      // view.composing = true
 
       if (!e.dataTransfer) {
         return
@@ -74,6 +76,11 @@ export default Extension.create({
       }
     }
 
+    function dragEnd(e, view) {
+      // reset the dragging, otherwise wrong content after dragging across multi editors repeatedly
+      view.dragging = null
+    }
+
     let dropElement
     const WIDTH = 28
 
@@ -85,8 +92,10 @@ export default Extension.create({
           element.draggable = 'true'
           element.classList.add('global-drag-handle')
           element.addEventListener('dragstart', e => dragStart(e, editorView))
+          element.addEventListener('dragend', e => dragEnd(e, editorView))
           dropElement = element
-          document.body.appendChild(dropElement)
+          // append to editor's parentNode (not document.body), to match the logic of dragging across multi editors in pasteRule.ts
+          editorView.dom.parentNode.appendChild(dropElement)
 
           return {
             // update(view, prevState) {
@@ -131,7 +140,8 @@ export default Extension.create({
                 if (node) {
                   node = node.node
                   while (node && node.parentNode) {
-                    if (node.parentNode?.classList?.contains('ProseMirror')) { // todo
+                    if (node.parentNode?.classList?.contains('ProseMirror')) {
+                      // todo
                       break
                     }
                     node = node.parentNode
@@ -145,7 +155,7 @@ export default Extension.create({
                     const rect = absoluteRect(node)
                     const win = node.ownerDocument.defaultView
 
-                    rect.top += win.pageYOffset + ((lineHeight - 24) / 2) + top
+                    rect.top += win.pageYOffset + (lineHeight - 24) / 2 + top
                     rect.left += win.pageXOffset
                     rect.width = `${WIDTH}px`
 

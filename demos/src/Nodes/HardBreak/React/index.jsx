@@ -1,9 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
 import Document from '@tiptap/extension-document'
+import HardBreak from '@tiptap/extension-hard-break'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import HardBreak from '@tiptap/extension-hard-break'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -28,7 +30,11 @@ export default () => {
 
   return (
     <>
-      <button onClick={() => editor.chain().focus().setHardBreak().run()}>setHardBreak</button>
+      <div className="control-group">
+        <div className="button-group">
+          <button onClick={() => editor.chain().focus().setHardBreak().run()}>Set hard break</button>
+        </div>
+      </div>
       <EditorContent editor={editor} />
     </>
   )

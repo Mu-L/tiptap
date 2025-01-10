@@ -1,10 +1,11 @@
-import React from 'react'
-import { useEditor, EditorContent } from '@tiptap/react'
+import './styles.scss'
+
+import Code from '@tiptap/extension-code'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import Code from '@tiptap/extension-code'
-import './styles.scss'
+import { EditorContent, useEditor } from '@tiptap/react'
+import React from 'react'
 
 export default () => {
   const editor = useEditor({
@@ -21,25 +22,28 @@ export default () => {
 
   return (
     <>
-      <button
-        onClick={() => editor.chain().focus().toggleCode().run()}
-        className={editor.isActive('code') ? 'is-active' : ''}
-      >
-        toggleCode
-      </button>
-      <button
-        onClick={() => editor.chain().focus().setCode().run()}
-        disabled={editor.isActive('code')}
-      >
-        setCode
-      </button>
-      <button
-        onClick={() => editor.chain().focus().unsetCode().run()}
-        disabled={!editor.isActive('code')}
-      >
-        unsetCode
-      </button>
-
+      <div className="control-group">
+        <div className="button-group">
+          <button
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={editor.isActive('code') ? 'is-active' : ''}
+          >
+            Toggle code
+          </button>
+          <button
+            onClick={() => editor.chain().focus().setCode().run()}
+            disabled={editor.isActive('code')}
+          >
+            Set code
+          </button>
+          <button
+            onClick={() => editor.chain().focus().unsetCode().run()}
+            disabled={!editor.isActive('code')}
+          >
+            Unset code
+          </button>
+        </div>
+      </div>
       <EditorContent editor={editor} />
     </>
   )

@@ -1,32 +1,23 @@
 <template>
-  <demo-frame
-    v-if="inline"
-    :src="currentIframeUrl"
-    :key="currentIframeUrl"
-  />
-  <div class="antialiased" v-else>
-    <div v-if="showTabs">
+  <div class="overflow-hidden antialiased rounded-lg">
+    <div class="px-3 py-1 bg-black flex items-center gap-0.5">
       <button
         v-for="(language, index) in sortedTabs"
         :key="index"
         @click="setTab(language.name)"
-        class="px-4 py-2 rounded-t-lg text-xs uppercase font-bold tracking-wide"
+        class="px-3 py-2 text-sm text-white leading-[125%] font-semibold rounded-[0.625rem] transition-all"
         :class="[currentTab === language.name
-          ? 'bg-black text-white'
-          : 'text-black'
+          ? 'opacity-100 bg-[#1C1917]'
+          : 'opacity-50 bg-transparent hover:opacity-100 hover:bg-[#1C1917]'
         ]"
       >
         {{ language.name }}
       </button>
     </div>
-    <div class="overflow-hidden rounded-b-xl">
+    <div class="overflow-hidden">
       <div
-        class="bg-white border-3 border-black last:rounded-b-xl"
-        :class="[
-          showTabs && firstTabSelected
-            ? 'rounded-tr-xl'
-            : 'rounded-t-xl',
-        ]"
+        class="bg-white"
+        :class="[hidePreview ? 'hidden' : '']"
       >
         <demo-frame
           :src="currentIframeUrl"
@@ -34,7 +25,7 @@
         />
       </div>
 
-      <div class="bg-black text-white" v-if="!hideSource && currentFile">
+      <div class="text-white bg-black" v-if="!hideSource && currentFile">
         <div class="flex overflow-x-auto">
           <div class="flex flex-auto px-4 border-b-2 border-gray-800">
             <button
@@ -66,17 +57,17 @@
 
         <div class="overflow-dark overflow-auto max-h-[500px] relative text-white">
           <shiki
-            class="overflow-visible p-4"
+            class="p-4 overflow-visible"
             :language="debugJSON && showDebug ? 'js' : getFileExtension(currentFile.name)"
             :code="debugJSON && showDebug ? debugJSON : currentFile.content"
           />
         </div>
 
-        <div class="flex justify-between px-4 py-2 text-md text-gray-400 border-t border-gray-800">
-          <a class="flex-shrink min-w-0 overflow-ellipsis overflow-hidden whitespace-nowrap" :href="currentIframeUrl">
+        <div class="flex justify-between px-4 py-2 text-gray-400 border-t border-gray-800 text-md">
+          <a class="flex-shrink min-w-0 overflow-hidden overflow-ellipsis whitespace-nowrap" :href="currentIframeUrl">
             {{ name }}/{{ currentTab }}
           </a>
-          <a class="whitespace-nowrap pl-4" :href="githubUrl" target="_blank">
+          <a class="pl-4 whitespace-nowrap" :href="githubUrl" target="_blank">
             Edit on GitHub →
           </a>
         </div>
@@ -87,6 +78,7 @@
 
 <script>
 import { getDebugJSON } from '@tiptap/core'
+
 import DemoFrame from './DemoFrame.vue'
 import Shiki from './Shiki.vue'
 
@@ -114,17 +106,13 @@ export default {
       sources: {},
       currentTab: null,
       currentFile: null,
-      tabOrder: ['React', 'Vue', 'JS'],
+      tabOrder: ['React', 'Vue', 'Svelte', 'JS'],
       debugJSON: null,
       showDebug: false,
     }
   },
 
   computed: {
-    showTabs() {
-      return this.sortedTabs.length > 1
-    },
-
     currentIframeUrl() {
       return `/src/${this.name}/${this.currentTab}/`
     },
@@ -153,6 +141,10 @@ export default {
       return this.query.hideSource || false
     },
 
+    hidePreview() {
+      return this.query.hidePreview || false
+    },
+
     githubUrl() {
       return `https://github.com/ueberdosis/tiptap/tree/main/demos/src/${this.name}`
     },
@@ -169,8 +161,6 @@ export default {
 
     setTab(name, persist = true) {
       this.currentTab = name
-      this.sources = {}
-      this.currentFile = null
 
       if (persist) {
         localStorage.tab = name
